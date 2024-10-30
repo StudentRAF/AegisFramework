@@ -33,17 +33,19 @@ public class AnnotationScanner {
                                                    .map(Annotation::annotationType)
                                                    .filter(type -> type.isAssignableFrom(AegisLibrary.class))
                                                    .forEach(type -> registerLibrary(currentClass)));
+
+        System.out.print(new StringBuilder().appendSeparatorWide());
     }
 
 
     private static void registerLibrary(Class<?> registerClass) {
         libraryClassSet.add(registerClass);
 
-        System.out.println(new StringBuilder().appendFormatted("{0}: {1}",
-                                                               "Register Library".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
-                                                                                 .applyAttribute(Attribute.UNDERLINE),
-                                                               registerClass.getName()
-                                                                            .applyColorAttribute(Attribute.SET_FOREGROUND, Color.FUCHSIA)));
+        System.out.print(new StringBuilder().appendFormattedLine("{0}: {1}",
+                                                                 "Register Library".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                                                   .applyAttribute(Attribute.UNDERLINE),
+                                                                 registerClass.getName()
+                                                                              .applyColorAttribute(Attribute.SET_FOREGROUND, Color.FUCHSIA)));
     }
 
     public static List<Class<?>> getLibraryClasses() {

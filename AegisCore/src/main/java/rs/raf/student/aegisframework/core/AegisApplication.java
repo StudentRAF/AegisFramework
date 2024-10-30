@@ -2,6 +2,7 @@ package rs.raf.student.aegisframework.core;
 
 import lombok.experimental.ExtensionMethod;
 import rs.raf.student.aegisframework.core.annotation.AegisApplicationRoot;
+import rs.raf.student.aegisframework.core.dependency_injection.DependencyInjectionFactory;
 import rs.raf.student.aegisframework.core.scanner.AnnotationScanner;
 import rs.raf.student.aegisframework.core.scanner.ClassScanner;
 import rs.raf.student.aegisframework.core.scanner.LibraryScanner;
@@ -19,18 +20,20 @@ public class AegisApplication {
         if (application == null)
             throw new RuntimeException("Application entry point class must be annotated with @Application");
 
-        System.out.println(new StringBuilder().appendSeparatorWide()
-                                              .appendFormattedLine("     {0}",
-                                                                   application.name()
-                                                                              .applyColorAttribute(Attribute.SET_FOREGROUND, Color.NAVY)
-                                                                              .applyAttribute(Attribute.BOLD))
-                                              .appendSeparatorWide());
+        System.out.print(new StringBuilder().appendSeparatorWide()
+                                            .appendFormattedLine("     {0}",
+                                                                 application.name()
+                                                                            .applyColorAttribute(Attribute.SET_FOREGROUND, Color.NAVY)
+                                                                            .applyAttribute(Attribute.BOLD))
+                                            .appendSeparatorWide());
 
         ClassScanner.scan(appClass.getPackageName());
 
         AnnotationScanner.scan();
 
         LibraryScanner.scan();
+
+        DependencyInjectionFactory.initialise();
     }
 
 }
