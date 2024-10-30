@@ -4,6 +4,7 @@ import lombok.experimental.ExtensionMethod;
 import rs.raf.student.aegisframework.core.annotation.AegisApplicationRoot;
 import rs.raf.student.aegisframework.core.scanner.AnnotationScanner;
 import rs.raf.student.aegisframework.core.scanner.ClassScanner;
+import rs.raf.student.aegisframework.core.scanner.LibraryScanner;
 import rs.raf.student.aegisframework.utils.ansi.Attribute;
 import rs.raf.student.aegisframework.utils.ansi.Color;
 import rs.raf.student.aegisframework.utils.extension.StringANSIEscapeExtension;
@@ -28,6 +29,8 @@ public class AegisApplication {
         ClassScanner.scan(appClass.getPackageName());
 
         AnnotationScanner.scan();
+
+        LibraryScanner.scan();
     }
 
 }
