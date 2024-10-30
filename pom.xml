@@ -14,6 +14,8 @@
         <module>AegisCore</module>
         <module>AegisUtils</module>
         <module>AegisWeb</module>
+
+        <module>AegisStarterWeb</module>
     </modules>
 
     <properties>
