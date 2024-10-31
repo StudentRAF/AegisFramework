@@ -103,13 +103,8 @@ public class DependencyInjectionContainer {
 
     @SneakyThrows
     public static <Type> Type retrieve(Class<Type> typeClass) {
-        if (singletonMap.containsKey(typeClass)) {
-            Object singletonInstance = singletonMap.get(typeClass);
-
-            logInstance(singletonInstance);
-
-            return (Type) singletonInstance;
-        }
+        if (singletonMap.containsKey(typeClass))
+            return (Type) singletonMap.get(typeClass);;
 
         if (prototypeMap.contains(typeClass)) {
             Type prototypeInstance = typeClass.getDeclaredConstructor().newInstance();
@@ -125,8 +120,6 @@ public class DependencyInjectionContainer {
                       }
                       catch (Exception ignored) { }
                   });
-
-            logInstance(prototypeInstance);
 
             return prototypeInstance;
         }
@@ -147,45 +140,6 @@ public class DependencyInjectionContainer {
 
     public static Object getSingleton(Class<?> singletonClass) {
         return singletonMap.get(singletonClass);
-    }
-
-    private static void logInstance(Object object) {
-        StringBuilder stringBuilder = new StringBuilder();
-
-        stringBuilder.appendFormattedLine("{0}: {1} | {2}: {3}",
-                                          "Object".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
-                                                  .applyAttribute(Attribute.UNDERLINE),
-                                          object.getClass().getName()
-                                                .applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL),
-                                          "Hash Code".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
-                                                     .applyAttribute(Attribute.UNDERLINE),
-                                          Integer.toHexString(object.hashCode())
-                                                 .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA));
-        Arrays.stream(object.getClass()
-                            .getDeclaredFields())
-              .forEach(field -> {
-                  field.setAccessible(true);
-
-                  stringBuilder.appendFormatted("{0}: {1} | ",
-                                                "Field".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
-                                                       .applyAttribute(Attribute.UNDERLINE),
-                                                field.getName()
-                                                     .applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL));
-
-                  try {
-                      Object fieldValue = field.get(object);
-                      stringBuilder.appendFormattedLine("{0}: {1}",
-                                                        "Value".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
-                                                                          .applyAttribute(Attribute.UNDERLINE),
-                                                        (fieldValue == null ? "null" : fieldValue.toString())
-                                                                  .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA));
-                  }
-                  catch (IllegalAccessException ignore) {
-                      stringBuilder.appendFormattedLine("{0}", "Error getting field's value.".applyColorAttribute(Attribute.SET_FOREGROUND, Color.RED));
-                  }
-              });
-
-        System.out.print(stringBuilder.appendSeparator());
     }
 
 }
