@@ -11,6 +11,7 @@ import rs.raf.student.aegisframework.utils.extension.StringBuilderExtension;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 @ExtensionMethod({StringBuilderExtension.class, StringANSIEscapeExtension.class})
@@ -140,6 +141,98 @@ public class DependencyInjectionContainer {
 
     public static Object getSingleton(Class<?> singletonClass) {
         return singletonMap.get(singletonClass);
+    }
+
+    public static void logState() {
+        StringBuilder stringBuilder = new StringBuilder();
+
+        stringBuilder.appendFormattedLine("     {0}",
+                                          "Prototype".applyColorAttribute(Attribute.SET_FOREGROUND, Color.NAVY))
+                     .appendSeparatorWide();
+
+        prototypeMap.stream()
+                    .map(DependencyInjectionContainer::retrieve)
+                    .filter(Objects::nonNull)
+                    .forEach(instance -> logInstanceAndFields(instance, stringBuilder));
+
+        stringBuilder.appendSeparatorWide()
+                     .appendFormattedLine("     {0}",
+                                          "Singleton".applyColorAttribute(Attribute.SET_FOREGROUND, Color.NAVY))
+                     .appendSeparatorWide();
+
+        singletonMap.keySet()
+                    .stream()
+                    .map(DependencyInjectionContainer::retrieve)
+                    .filter(Objects::nonNull)
+                    .forEach(instance -> logInstanceAndFields(instance, stringBuilder));
+
+        stringBuilder.appendSeparatorWide()
+                     .appendFormattedLine("     {0}",
+                                          "Super Class".applyColorAttribute(Attribute.SET_FOREGROUND, Color.NAVY))
+                     .appendSeparatorWide();
+        superClassMap.keySet()
+                     .forEach(superClassEntry -> logSuperClassDependency(superClassEntry, superClassMap.get(superClassEntry), stringBuilder));
+
+        System.out.print(stringBuilder);
+    }
+
+    private static void logInstanceAndFields(Object instance, StringBuilder stringBuilder) {
+        stringBuilder.appendFormattedLine("{0}: {1} | {2}: {3}",
+                                          "Instance".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                    .applyAttribute(Attribute.UNDERLINE),
+                                          instance.getClass()
+                                                  .getName()
+                                                  .applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL),
+                                          "Hash Code".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                     .applyAttribute(Attribute.UNDERLINE),
+                                          Integer.toHexString(instance.hashCode())
+                                                 .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA));
+
+        Arrays.stream(instance.getClass()
+                              .getDeclaredFields())
+              .forEach(field -> {
+                  stringBuilder.appendFormatted("{0}: {1} | ",
+                                                "Field".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                       .applyAttribute(Attribute.UNDERLINE),
+                                                field.getName()
+                                                     .applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL));
+                  field.setAccessible(true);
+
+                  try {
+                      Object fieldInstance = field.get(instance);
+
+                      if (fieldInstance != null)
+                          stringBuilder.appendFormattedLine("{0}: {1} | {2}: {3}",
+                                                            "Instance Type".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                                           .applyAttribute(Attribute.UNDERLINE),
+                                                            fieldInstance.getClass()
+                                                                         .getName()
+                                                                         .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA),
+                                                            "Hash Code".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                                       .applyAttribute(Attribute.UNDERLINE),
+                                                            Integer.toHexString(fieldInstance.hashCode())
+                                                                   .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA));
+                      else
+                          stringBuilder.appendFormattedLine("{0}",
+                                                            "null".applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA));
+                  }
+                  catch (IllegalAccessException ignore) { }
+              });
+
+        stringBuilder.appendSeparator();
+    }
+
+    private static void logSuperClassDependency(Class<?> superClass, Class<?> instanceClass, StringBuilder stringBuilder) {
+        stringBuilder.appendFormattedLine("{0}: {1} | {2}: {3}",
+                                          "Super Class Type".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                            .applyAttribute(Attribute.UNDERLINE),
+                                          superClass.getName()
+                                                    .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA),
+                                          "Instance Type".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                         .applyAttribute(Attribute.UNDERLINE),
+                                          instanceClass.getName()
+                                                       .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA))
+                     .appendSeparator();
     }
 
 }

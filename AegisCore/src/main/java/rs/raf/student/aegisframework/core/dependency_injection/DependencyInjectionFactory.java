@@ -23,6 +23,7 @@ public class DependencyInjectionFactory {
     public static void initialise() {
         initialiseContainer();
         injectDependencies();
+        DependencyInjectionContainer.logState();
     }
 
     private static void initialiseContainer() {
