@@ -111,7 +111,7 @@ public class DependencyInjectionContainer {
             Type prototypeInstance = typeClass.getDeclaredConstructor().newInstance();
 
             Arrays.stream(prototypeInstance.getClass()
-                                           .getFields())
+                                           .getDeclaredFields())
                   .forEach(field -> {
                       try {
                           Object fieldInstance = retrieve(field.getType());
