@@ -4,6 +4,7 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.SneakyThrows;
 import lombok.experimental.ExtensionMethod;
+import rs.raf.student.aegisframework.core.scanner.ClassScanner;
 import rs.raf.student.aegisframework.utils.ansi.Attribute;
 import rs.raf.student.aegisframework.utils.ansi.Color;
 import rs.raf.student.aegisframework.utils.extension.StringANSIEscapeExtension;
@@ -17,9 +18,10 @@ import java.util.Set;
 @ExtensionMethod({StringBuilderExtension.class, StringANSIEscapeExtension.class})
 public class DependencyInjectionContainer {
 
-    private static final Set<Class<?>>           prototypeMap = Sets.newHashSet();
+    private static final Set<Class<?>>           prototypeMap  = Sets.newHashSet();
     private static final Map<Class<?>, Object>   singletonMap  = Maps.newHashMap();
     private static final Map<Class<?>, Class<?>> superClassMap = Maps.newHashMap();
+    private static final Map<Class<?>, Class<?>> qualifierMap  = Maps.newHashMap();
 
     public static <Type> void registerPrototype(Class<Type> classType) {
         prototypeMap.add(classType);
@@ -79,8 +81,35 @@ public class DependencyInjectionContainer {
                                                                  superClass.getName()
                                                                            .applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL),
                                                                  "->".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER),
-                                                                 superClassMap.get(superClass).getName()
+                                                                 superClassMap.get(superClass)
+                                                                              .getName()
                                                                               .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA)));
+    }
+
+    public static void registerQualifier(Class<?> superClass, Class<?> concreteClass) {
+        if (superClass.equals(concreteClass))
+            return;
+
+        if (qualifierMap.get(superClass) != null) {
+            System.out.print(new StringBuilder().appendFormattedLine("Error assigning qualifier: class {0} already have qualifier class {1}.".applyColorAttribute(Attribute.SET_FOREGROUND, Color.RED),
+                                                                     superClass.getName()
+                                                                               .applyColorAttribute(Attribute.SET_FOREGROUND, Color.MAROON),
+                                                                     concreteClass.getName()
+                                                                                  .applyColorAttribute(Attribute.SET_FOREGROUND, Color.MAROON)));
+            return;
+        }
+
+        qualifierMap.put(superClass, concreteClass);
+
+        System.out.print(new StringBuilder().appendFormattedLine("{0}:          {1} {2} {3}",
+                                                                 "Register Qualifier".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                                                     .applyAttribute(Attribute.UNDERLINE),
+                                                                 superClass.getName()
+                                                                           .applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL),
+                                                                 "->".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER),
+                                                                 qualifierMap.get(superClass)
+                                                                             .getName()
+                                                                             .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA)));
     }
 
     private static void registerInterface(Class<?> interfaceClass, Class<?> concreteClass) {
@@ -105,7 +134,7 @@ public class DependencyInjectionContainer {
     @SneakyThrows
     public static <Type> Type retrieve(Class<Type> typeClass) {
         if (singletonMap.containsKey(typeClass))
-            return (Type) singletonMap.get(typeClass);;
+            return (Type) singletonMap.get(typeClass);
 
         if (prototypeMap.contains(typeClass)) {
             Type prototypeInstance = typeClass.getDeclaredConstructor().newInstance();
@@ -114,6 +143,9 @@ public class DependencyInjectionContainer {
                                            .getDeclaredFields())
                   .forEach(field -> {
                       try {
+                          if (!ClassScanner.isApplicationClass(field.getType()))
+                              return;
+
                           Object fieldInstance = retrieve(field.getType());
 
                           field.setAccessible(true);
@@ -125,10 +157,16 @@ public class DependencyInjectionContainer {
             return prototypeInstance;
         }
 
+        if (qualifierMap.containsKey(typeClass))
+            return (Type) retrieve(qualifierMap.get(typeClass));
+
         if (superClassMap.containsKey(typeClass)) {
             Class<?> dependencyType = superClassMap.get(typeClass);
 
             if (dependencyType.equals(Object.class)) {
+                System.out.print(new StringBuilder().appendFormattedLine("Cannot instantiate class {0}, it has more than one concrete type Bean - Use @Qualifier annotation to choose the class.".applyColorAttribute(Attribute.SET_FOREGROUND, Color.RED),
+                                                                         typeClass.getName()
+                                                                                  .applyColorAttribute(Attribute.SET_FOREGROUND, Color.MAROON)));
                 System.out.println("Class: " + typeClass.getName() + " has multiple qualifiers!");
                 return null;
             }
@@ -136,7 +174,11 @@ public class DependencyInjectionContainer {
             return (Type) retrieve(dependencyType);
         }
 
-        throw new RuntimeException("Class: " + typeClass.getName() + " is not Aegis Bean!");
+        System.out.print(new StringBuilder().appendFormattedLine("Class {0} has not have Bean associated with.".applyColorAttribute(Attribute.SET_FOREGROUND, Color.RED),
+                                                                 typeClass.getName()
+                                                                          .applyColorAttribute(Attribute.SET_FOREGROUND, Color.MAROON)));
+
+        return null;
     }
 
     public static Object getSingleton(Class<?> singletonClass) {
@@ -165,6 +207,13 @@ public class DependencyInjectionContainer {
                     .map(DependencyInjectionContainer::retrieve)
                     .filter(Objects::nonNull)
                     .forEach(instance -> logInstanceAndFields(instance, stringBuilder));
+
+        stringBuilder.appendSeparatorWide()
+                     .appendFormattedLine("     {0}",
+                                          "Qualifier".applyColorAttribute(Attribute.SET_FOREGROUND, Color.NAVY))
+                     .appendSeparatorWide();
+        qualifierMap.keySet()
+                    .forEach(qualifierEntry -> logSuperClassDependency(qualifierEntry, qualifierMap.get(qualifierEntry), stringBuilder));
 
         stringBuilder.appendSeparatorWide()
                      .appendFormattedLine("     {0}",

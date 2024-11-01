@@ -23,6 +23,10 @@ public class ClassScanner {
         return loaderClasses;
     }
 
+    public static boolean isApplicationClass(Class<?> typeClass) {
+        return applicationClasses.contains(typeClass);
+    }
+
     public static Set<Class<?>> getApplicationClasses() {
         return applicationClasses;
     }

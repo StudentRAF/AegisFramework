@@ -83,7 +83,6 @@ public class DependencyInjectionFactory {
                                                .getName()
                                                .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA));
 
-
         Object fieldValue = DependencyInjectionContainer.retrieve(field.getType());
 
         if (fieldValue == null)
