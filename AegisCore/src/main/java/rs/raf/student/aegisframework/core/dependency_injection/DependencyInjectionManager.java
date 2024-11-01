@@ -52,4 +52,12 @@ public class DependencyInjectionManager {
         return containerAnnotationMap.get(annotationType);
     }
 
+    public static Object getInstance(Class<?> instanceClass) {
+        return DependencyInjectionContainer.retrieve(instanceClass);
+    }
+
+    public Set<Class<? extends Annotation>> getInjectionAnnotations() {
+        return injectionAnnotationMap;
+    }
+
 }
