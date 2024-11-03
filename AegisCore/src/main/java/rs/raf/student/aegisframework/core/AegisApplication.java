@@ -1,11 +1,9 @@
 package rs.raf.student.aegisframework.core;
 
+import lombok.Getter;
 import lombok.experimental.ExtensionMethod;
 import rs.raf.student.aegisframework.core.annotation.AegisApplicationRoot;
-import rs.raf.student.aegisframework.core.dependency_injection.DependencyInjectionFactory;
-import rs.raf.student.aegisframework.core.scanner.AnnotationScanner;
-import rs.raf.student.aegisframework.core.scanner.ClassScanner;
-import rs.raf.student.aegisframework.core.scanner.LibraryScanner;
+import rs.raf.student.aegisframework.core.pipeline.PipelineManager;
 import rs.raf.student.aegisframework.utils.ansi.Attribute;
 import rs.raf.student.aegisframework.utils.ansi.Color;
 import rs.raf.student.aegisframework.utils.extension.StringANSIEscapeExtension;
@@ -13,6 +11,9 @@ import rs.raf.student.aegisframework.utils.extension.StringBuilderExtension;
 
 @ExtensionMethod({StringBuilderExtension.class, StringANSIEscapeExtension.class})
 public class AegisApplication {
+
+    @Getter
+    private static String basePackage;
 
     public static void run(Class<?> appClass, String[] args) {
         AegisApplicationRoot application = appClass.getAnnotation(AegisApplicationRoot.class);
@@ -27,13 +28,9 @@ public class AegisApplication {
                                                                             .applyAttribute(Attribute.BOLD))
                                             .appendSeparatorWide());
 
-        ClassScanner.scan(appClass.getPackageName());
+        basePackage = appClass.getPackageName();
 
-        AnnotationScanner.scan();
-
-        LibraryScanner.scan();
-
-        DependencyInjectionFactory.initialise();
+        PipelineManager.start();
     }
 
 }

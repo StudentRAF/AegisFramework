@@ -1,6 +1,7 @@
 package rs.raf.student.aegisframework.core.scanner;
 
 import com.google.common.collect.Sets;
+import rs.raf.student.aegisframework.core.AegisApplication;
 import rs.raf.student.aegisframework.utils.ClassUtils;
 
 import java.util.Objects;
@@ -11,11 +12,11 @@ public class ClassScanner {
     private static final Set<Class<?>> loaderClasses      = ClassUtils.getAllClasses();
     private static final Set<Class<?>> applicationClasses = Sets.newHashSet();
 
-    public static void scan(String basePackage) {
+    public static void scan() {
         applicationClasses.addAll(loaderClasses.stream()
                                                .filter(Objects::nonNull)
                                                .filter(classInfo -> classInfo.getPackageName()
-                                                                             .startsWith(basePackage))
+                                                                             .startsWith(AegisApplication.getBasePackage()))
                                                .toList());
     }
 

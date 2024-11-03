@@ -1,7 +1,5 @@
 package rs.raf.student.aegisframework.core.dependency_injection;
 
-import com.google.common.collect.ArrayListMultimap;
-import com.google.common.collect.Multimap;
 import lombok.SneakyThrows;
 import lombok.experimental.ExtensionMethod;
 import rs.raf.student.aegisframework.core.scanner.ClassScanner;
@@ -18,15 +16,7 @@ import java.util.Arrays;
 @ExtensionMethod({StringBuilderExtension.class, StringANSIEscapeExtension.class})
 public class DependencyInjectionFactory {
 
-    private static final Multimap<Class<?>, Class<?>> dependencyMap = ArrayListMultimap.create();
-
-    public static void initialise() {
-        initialiseContainer();
-        injectDependencies();
-        DependencyInjectionContainer.logState();
-    }
-
-    private static void initialiseContainer() {
+    public static void initialiseContainer() {
         System.out.print(new StringBuilder().appendSeparatorWide()
                                             .appendLine("     Initialise Container")
                                             .appendSeparatorWide());
@@ -42,7 +32,7 @@ public class DependencyInjectionFactory {
         System.out.print(new StringBuilder().appendSeparatorWide());
     }
 
-    private static void injectDependencies() {
+    public static void injectDependencies() {
         System.out.print(new StringBuilder().appendLine("     Inject Dependencies")
                                             .appendSeparatorWide());
 
