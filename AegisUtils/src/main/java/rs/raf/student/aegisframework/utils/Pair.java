@@ -1,9 +1,11 @@
 package rs.raf.student.aegisframework.utils;
 
 import lombok.AllArgsConstructor;
+import lombok.EqualsAndHashCode;
 
 import java.util.Map;
 
+@EqualsAndHashCode
 @AllArgsConstructor
 public class Pair<Key, Value> implements Map.Entry<Key, Value> {
 
