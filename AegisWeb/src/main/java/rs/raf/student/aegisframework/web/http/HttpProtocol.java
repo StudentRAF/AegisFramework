@@ -1,12 +1,12 @@
 package rs.raf.student.aegisframework.web.http;
 
-public enum Protocol {
+public enum HttpProtocol {
 
     HTTP1,
     HTTP2,
     HTTP3;
 
-    public static Protocol find(String version) {
+    public static HttpProtocol find(String version) {
         return switch (version) {
             case "HTTP/1.1" -> HTTP1;
             case "HTTP/2"   -> HTTP2;

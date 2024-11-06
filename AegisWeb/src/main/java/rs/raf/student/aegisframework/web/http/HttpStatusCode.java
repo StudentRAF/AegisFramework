@@ -3,7 +3,7 @@ package rs.raf.student.aegisframework.web.http;
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-public enum StatusCode {
+public enum HttpStatusCode {
 
     CONTINUE                      (100, "Continue"                     ),
     SWITCHING_PROTOCOLS           (101, "Switching Protocols"          ),

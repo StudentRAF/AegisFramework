@@ -1,6 +1,6 @@
 package rs.raf.student.aegisframework.web.http;
 
-public enum Method {
+public enum HttpMethod {
 
     GET,
     HEAD,
