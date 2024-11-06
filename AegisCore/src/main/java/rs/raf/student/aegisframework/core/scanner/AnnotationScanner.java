@@ -37,6 +37,8 @@ public class AnnotationScanner {
         scanTypes();
     }
 
+    //region Scan Libraries
+
     private static void scanLibraries() {
         ClassScanner.getClasses()
                     .stream()
@@ -60,6 +62,10 @@ public class AnnotationScanner {
                                                                               .applyColorAttribute(Attribute.SET_FOREGROUND, Color.FUCHSIA)));
     }
 
+    //endregion Scan Libraries
+
+    //region Scan Types
+
     private static void scanTypes() {
         ClassScanner.getApplicationClasses()
                     .stream()
@@ -74,14 +80,14 @@ public class AnnotationScanner {
                   annotationClassesMap.put(annotation.annotationType(), typeClass);
               });
 
-        Arrays.stream(getFields(typeClass))
+        Arrays.stream(getReflectionFields(typeClass))
               .forEach(AnnotationScanner::registerField);
 
-        Arrays.stream(getMethods(typeClass))
+        Arrays.stream(getReflectionMethods(typeClass))
               .forEach(AnnotationScanner::registerMethod);
     }
 
-    private static Field[] getFields(Class<?> typeClass) {
+    private static Field[] getReflectionFields(Class<?> typeClass) {
         try {
             return typeClass.getDeclaredFields();
         }
@@ -90,7 +96,7 @@ public class AnnotationScanner {
         }
     }
 
-    private static Method[] getMethods(Class<?> typeClass) {
+    private static Method[] getReflectionMethods(Class<?> typeClass) {
         try {
             return typeClass.getDeclaredMethods();
         }
@@ -109,10 +115,24 @@ public class AnnotationScanner {
               .forEach(annotation -> annotationMethodsMap.put(annotation.annotationType(), method));
     }
 
+    //endregion Scan Types
+
+    public static List<Class<?>> getAnnotationClasses(Class<? extends Annotation> annotation) {
+        return annotationClassesMap.get(annotation)
+                                   .stream()
+                                   .toList();
+    }
+
     public static List<Field> getAnnotationFields(Class<? extends Annotation> annotation) {
         return annotationFieldsMap.get(annotation)
                                   .stream()
                                   .toList();
+    }
+
+    public static List<Method> getAnnotationMethods(Class<? extends Annotation> annotation) {
+        return annotationMethodsMap.get(annotation)
+                                   .stream()
+                                   .toList();
     }
 
     public static List<Class<?>> getLibraryClasses() {
