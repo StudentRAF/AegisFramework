@@ -2,6 +2,8 @@ package rs.raf.student.aegisframework.core.dependency_injection;
 
 import lombok.SneakyThrows;
 import lombok.experimental.ExtensionMethod;
+import rs.raf.student.aegisframework.core.annotation.Qualifier;
+import rs.raf.student.aegisframework.core.scanner.AnnotationScanner;
 import rs.raf.student.aegisframework.core.scanner.ClassScanner;
 import rs.raf.student.aegisframework.utils.Pair;
 import rs.raf.student.aegisframework.utils.ansi.Attribute;
@@ -28,6 +30,10 @@ public class DependencyInjectionFactory {
                     .filter(pair -> DependencyInjectionManager.isContainerAnnotation(pair.getValue().annotationType()))
                     .forEach(pair -> DependencyInjectionManager.getContainerAnnotation(pair.getValue().annotationType())
                                                                .register(pair.getKey(), pair.getValue()));
+
+        AnnotationScanner.getAnnotationFields(Qualifier.class)
+                         .forEach(field -> DependencyInjectionContainer.registerFieldQualifier(field, field.getAnnotation(Qualifier.class)
+                                                                                                           .value()));
 
         System.out.print(new StringBuilder().appendSeparatorWide());
     }
@@ -73,7 +79,7 @@ public class DependencyInjectionFactory {
                                                .getName()
                                                .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA));
 
-        Object fieldValue = DependencyInjectionContainer.retrieve(field.getType());
+        Object fieldValue = DependencyInjectionContainer.retrieve(field.getType(), field);
 
         if (fieldValue == null)
             return;

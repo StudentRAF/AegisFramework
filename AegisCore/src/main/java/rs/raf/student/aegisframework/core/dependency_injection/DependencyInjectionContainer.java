@@ -4,12 +4,12 @@ import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import lombok.SneakyThrows;
 import lombok.experimental.ExtensionMethod;
-import rs.raf.student.aegisframework.core.scanner.ClassScanner;
 import rs.raf.student.aegisframework.utils.ansi.Attribute;
 import rs.raf.student.aegisframework.utils.ansi.Color;
 import rs.raf.student.aegisframework.utils.extension.StringANSIEscapeExtension;
 import rs.raf.student.aegisframework.utils.extension.StringBuilderExtension;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Objects;
@@ -18,10 +18,11 @@ import java.util.Set;
 @ExtensionMethod({StringBuilderExtension.class, StringANSIEscapeExtension.class})
 public class DependencyInjectionContainer {
 
-    private static final Set<Class<?>>           prototypeMap  = Sets.newHashSet();
-    private static final Map<Class<?>, Object>   singletonMap  = Maps.newHashMap();
-    private static final Map<Class<?>, Class<?>> superClassMap = Maps.newHashMap();
-    private static final Map<Class<?>, Class<?>> qualifierMap  = Maps.newHashMap();
+    private static final Set<Class<?>>           prototypeMap      = Sets.newHashSet();
+    private static final Map<Class<?>, Object>   singletonMap      = Maps.newHashMap();
+    private static final Map<Class<?>, Class<?>> superClassMap     = Maps.newHashMap();
+    private static final Map<Class<?>, Class<?>> classQualifierMap = Maps.newHashMap();
+    private static final Map<Field, Class<?>>    fieldQualifierMap = Maps.newHashMap();
 
     public static <Type> void registerPrototype(Class<Type> classType) {
         prototypeMap.add(classType);
@@ -86,12 +87,39 @@ public class DependencyInjectionContainer {
                                                                               .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA)));
     }
 
-    public static void registerQualifier(Class<?> superClass, Class<?> concreteClass) {
+    public static void registerFieldQualifier(Field field, Class<?> concreteClass) {
+        if (fieldQualifierMap.containsKey(field)) {
+            System.out.print(new StringBuilder().appendFormattedLine("Error assigning field qualifier: field {0} already have qualifier class {1}.".applyColorAttribute(Attribute.SET_FOREGROUND, Color.RED),
+                                                                     field.getName()
+                                                                          .applyColorAttribute(Attribute.SET_FOREGROUND, Color.MAROON),
+                                                                     concreteClass.getName()
+                                                                                  .applyColorAttribute(Attribute.SET_FOREGROUND, Color.MAROON)));
+            return;
+        }
+
+        fieldQualifierMap.put(field, concreteClass);
+
+        System.out.print(new StringBuilder().appendFormattedLine("{0}:    {1}{2}{3} {4} {5}",
+                                                                 "Register Field Qualifier".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                                                           .applyAttribute(Attribute.UNDERLINE),
+                                                                 field.getDeclaringClass()
+                                                                      .getName()
+                                                                      .applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL),
+                                                                 ".".applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL),
+                                                                 field.getName()
+                                                                      .applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL),
+                                                                 "->".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER),
+                                                                 fieldQualifierMap.get(field)
+                                                                                  .getName()
+                                                                                  .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA)));
+    }
+
+    public static void registerClassQualifier(Class<?> superClass, Class<?> concreteClass) {
         if (superClass.equals(concreteClass))
             return;
 
-        if (qualifierMap.get(superClass) != null) {
-            System.out.print(new StringBuilder().appendFormattedLine("Error assigning qualifier: class {0} already have qualifier class {1}.".applyColorAttribute(Attribute.SET_FOREGROUND, Color.RED),
+        if (classQualifierMap.containsKey(superClass)) {
+            System.out.print(new StringBuilder().appendFormattedLine("Error assigning class qualifier: class {0} already have qualifier class {1}.".applyColorAttribute(Attribute.SET_FOREGROUND, Color.RED),
                                                                      superClass.getName()
                                                                                .applyColorAttribute(Attribute.SET_FOREGROUND, Color.MAROON),
                                                                      concreteClass.getName()
@@ -99,17 +127,17 @@ public class DependencyInjectionContainer {
             return;
         }
 
-        qualifierMap.put(superClass, concreteClass);
+        classQualifierMap.put(superClass, concreteClass);
 
-        System.out.print(new StringBuilder().appendFormattedLine("{0}:          {1} {2} {3}",
-                                                                 "Register Qualifier".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
-                                                                                     .applyAttribute(Attribute.UNDERLINE),
+        System.out.print(new StringBuilder().appendFormattedLine("{0}:    {1} {2} {3}",
+                                                                 "Register Class Qualifier".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                                                           .applyAttribute(Attribute.UNDERLINE),
                                                                  superClass.getName()
                                                                            .applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL),
                                                                  "->".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER),
-                                                                 qualifierMap.get(superClass)
-                                                                             .getName()
-                                                                             .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA)));
+                                                                 classQualifierMap.get(superClass)
+                                                                                  .getName()
+                                                                                  .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA)));
     }
 
     private static void registerInterface(Class<?> interfaceClass, Class<?> concreteClass) {
@@ -131,8 +159,18 @@ public class DependencyInjectionContainer {
               .forEach(superInterface -> registerInterface(superInterface, concreteClass));
     }
 
-    @SneakyThrows
     public static <Type> Type retrieve(Class<Type> typeClass) {
+        return retrieve(typeClass, null);
+    }
+
+    @SneakyThrows
+    public static <Type> Type retrieve(Class<Type> typeClass, Field field) {
+        if (field != null && fieldQualifierMap.containsKey(field))
+            return (Type) retrieve(fieldQualifierMap.get(field));
+
+        if (classQualifierMap.containsKey(typeClass))
+            return (Type) retrieve(classQualifierMap.get(typeClass));
+
         if (singletonMap.containsKey(typeClass))
             return (Type) singletonMap.get(typeClass);
 
@@ -141,24 +179,21 @@ public class DependencyInjectionContainer {
 
             Arrays.stream(prototypeInstance.getClass()
                                            .getDeclaredFields())
-                  .forEach(field -> {
+                  .forEach(classField -> {
                       try {
-                          if (!ClassScanner.isApplicationClass(field.getType()))
+                          if (!DependencyInjectionManager.hasInjectionAnnotation(classField.getDeclaredAnnotations()))
                               return;
 
-                          Object fieldInstance = retrieve(field.getType());
+                          Object fieldInstance = retrieve(classField.getType(), classField);
 
-                          field.setAccessible(true);
-                          field.set(prototypeInstance, fieldInstance);
+                          classField.setAccessible(true);
+                          classField.set(prototypeInstance, fieldInstance);
                       }
                       catch (Exception ignored) { }
                   });
 
             return prototypeInstance;
         }
-
-        if (qualifierMap.containsKey(typeClass))
-            return (Type) retrieve(qualifierMap.get(typeClass));
 
         if (superClassMap.containsKey(typeClass)) {
             Class<?> dependencyType = superClassMap.get(typeClass);
@@ -167,7 +202,7 @@ public class DependencyInjectionContainer {
                 System.out.print(new StringBuilder().appendFormattedLine("Cannot instantiate class {0}, it has more than one concrete type Bean - Use @Qualifier annotation to choose the class.".applyColorAttribute(Attribute.SET_FOREGROUND, Color.RED),
                                                                          typeClass.getName()
                                                                                   .applyColorAttribute(Attribute.SET_FOREGROUND, Color.MAROON)));
-                System.out.println("Class: " + typeClass.getName() + " has multiple qualifiers!");
+
                 return null;
             }
 
@@ -210,10 +245,17 @@ public class DependencyInjectionContainer {
 
         stringBuilder.appendSeparatorWide()
                      .appendFormattedLine("     {0}",
-                                          "Qualifier".applyColorAttribute(Attribute.SET_FOREGROUND, Color.NAVY))
+                                          "Field Qualifier".applyColorAttribute(Attribute.SET_FOREGROUND, Color.NAVY))
                      .appendSeparatorWide();
-        qualifierMap.keySet()
-                    .forEach(qualifierEntry -> logSuperClassDependency(qualifierEntry, qualifierMap.get(qualifierEntry), stringBuilder));
+        fieldQualifierMap.keySet()
+                         .forEach(qualifierEntry -> logFieldQualifiers(qualifierEntry, fieldQualifierMap.get(qualifierEntry), stringBuilder));
+
+        stringBuilder.appendSeparatorWide()
+                     .appendFormattedLine("     {0}",
+                                          "Class Qualifier".applyColorAttribute(Attribute.SET_FOREGROUND, Color.NAVY))
+                     .appendSeparatorWide();
+        classQualifierMap.keySet()
+                         .forEach(qualifierEntry -> logSuperClassDependency(qualifierEntry, classQualifierMap.get(qualifierEntry), stringBuilder));
 
         stringBuilder.appendSeparatorWide()
                      .appendFormattedLine("     {0}",
@@ -269,6 +311,19 @@ public class DependencyInjectionContainer {
               });
 
         stringBuilder.appendSeparator();
+    }
+
+    private static void logFieldQualifiers(Field field, Class<?> instanceClass, StringBuilder stringBuilder) {
+        stringBuilder.appendFormattedLine("{0}: {1} | {2}: {3}",
+                                          "Field".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                 .applyAttribute(Attribute.UNDERLINE),
+                                          field.getName()
+                                               .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA),
+                                          "Instance Type".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                         .applyAttribute(Attribute.UNDERLINE),
+                                          instanceClass.getName()
+                                                       .applyColorAttribute(Attribute.SET_FOREGROUND, Color.AQUA))
+                     .appendSeparator();
     }
 
     private static void logSuperClassDependency(Class<?> superClass, Class<?> instanceClass, StringBuilder stringBuilder) {

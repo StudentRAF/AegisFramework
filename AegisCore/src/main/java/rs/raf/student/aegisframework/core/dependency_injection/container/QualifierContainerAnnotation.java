@@ -14,7 +14,7 @@ public class QualifierContainerAnnotation extends AbstractContainerAnnotation<Qu
 
     @Override
     public void register(Class<?> caller, Annotation annotation) {
-        DependencyInjectionContainer.registerQualifier(caller, ((Qualifier)annotation).value());
+        DependencyInjectionContainer.registerClassQualifier(caller, ((Qualifier)annotation).value());
     }
 
 }
