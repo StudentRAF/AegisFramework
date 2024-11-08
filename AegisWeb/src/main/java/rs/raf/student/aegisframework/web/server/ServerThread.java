@@ -2,6 +2,8 @@ package rs.raf.student.aegisframework.web.server;
 
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import rs.raf.student.aegisframework.web.http.HttpRequest;
+import rs.raf.student.aegisframework.web.http.HttpResponse;
 
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -14,7 +16,11 @@ public class ServerThread implements Runnable {
     @Override
     @SneakyThrows
     public void run() {
+        HttpRequest  request  = new HttpRequest(socket);
+        HttpResponse response = new HttpResponse(socket, request);
 
+        response.process();
+        socket.close();
     }
 
     @SneakyThrows

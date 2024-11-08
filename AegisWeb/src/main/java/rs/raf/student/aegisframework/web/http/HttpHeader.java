@@ -1,10 +1,18 @@
 package rs.raf.student.aegisframework.web.http;
 
+import lombok.experimental.ExtensionMethod;
+import rs.raf.student.aegisframework.utils.ansi.Attribute;
+import rs.raf.student.aegisframework.utils.ansi.Color;
+import rs.raf.student.aegisframework.utils.extension.StringANSIEscapeExtension;
+import rs.raf.student.aegisframework.utils.extension.StringBuilderExtension;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
+@ExtensionMethod({StringBuilderExtension.class, StringANSIEscapeExtension.class})
 public class HttpHeader {
 
     public static final HttpHeader ACCEPT                    = HttpHeader.of("Accept");
@@ -96,6 +104,18 @@ public class HttpHeader {
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    public String log() {
+        StringBuilder stringBuilder = new StringBuilder().appendFormatted("{0}: ",
+                                                                          name.applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                                              .applyAttribute(Attribute.UNDERLINE));
+
+        stringBuilder.append(values.stream()
+                                   .map(value -> value.applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL))
+                                   .collect(Collectors.joining(", ")));
+
+        return stringBuilder.toString();
     }
 
     public static HttpHeader of(String name) {

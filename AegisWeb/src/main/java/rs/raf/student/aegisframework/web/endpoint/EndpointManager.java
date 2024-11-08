@@ -9,6 +9,7 @@ import rs.raf.student.aegisframework.utils.extension.StringBuilderExtension;
 import rs.raf.student.aegisframework.web.http.HttpMethod;
 
 import java.lang.annotation.Annotation;
+import java.lang.reflect.Method;
 import java.util.Arrays;
 import java.util.Map;
 
@@ -20,9 +21,9 @@ public class EndpointManager {
     public static <Type extends Annotation> void registerRequestAnnotation(AbstractRequestAnnotation<Type> requestAnnotation) {
         requestAnnotationMap.put(requestAnnotation.getAnnotationClass(), requestAnnotation.getHttpMethod());
 
-        System.out.print(new StringBuilder().appendFormattedLine("{0}:    {1}",
-                                                                 "Register Inject Annotation".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
-                                                                                             .applyAttribute(Attribute.UNDERLINE),
+        System.out.print(new StringBuilder().appendFormattedLine("{0}: {1}",
+                                                                 "Register Request Annotation".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
+                                                                                              .applyAttribute(Attribute.UNDERLINE),
                                                                  requestAnnotation.getAnnotationClass()
                                                                                   .getName()
                                                                                   .applyColorAttribute(Attribute.SET_FOREGROUND, Color.TEAL)));
@@ -39,6 +40,10 @@ public class EndpointManager {
 
     public static HttpMethod getHttpMethod(Class<? extends Annotation> annotationType) {
         return requestAnnotationMap.get(annotationType);
+    }
+
+    public static Method getMethod(String path, HttpMethod httpMethod) {
+        return EndpointContainer.getMethod(path, httpMethod);
     }
 
 }

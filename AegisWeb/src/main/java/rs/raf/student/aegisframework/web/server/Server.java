@@ -17,7 +17,7 @@ public class Server {
 
     @SneakyThrows
     public static void start() {
-        try (ServerSocket socket = new ServerSocket(PORT)) {
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
             System.out.print(new StringBuilder().appendFormattedLine("{0}: {1}{2}",
                                                                      "Aegis server running at".applyColorAttribute(Attribute.SET_FOREGROUND, Color.SILVER)
                                                                                               .applyAttribute(Attribute.UNDERLINE),
@@ -28,8 +28,7 @@ public class Server {
                                                                            .applyAttribute(Attribute.UNDERLINE)));
 
             IntStream.iterate(0, connection -> connection + 1)
-                     .forEach(connection -> ServerThread.create(socket));
-
+                     .forEach(connection -> ServerThread.create(serverSocket));
         }
     }
 

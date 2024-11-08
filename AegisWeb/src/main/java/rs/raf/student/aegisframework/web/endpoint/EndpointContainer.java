@@ -15,4 +15,8 @@ public class EndpointContainer {
         endpointMethodMap.put(Pair.of(endpoint, httpMethod), method);
     }
 
+    public static Method getMethod(String path, HttpMethod httpMethod) {
+        return endpointMethodMap.get(Pair.of(path, httpMethod));
+    }
+
 }
