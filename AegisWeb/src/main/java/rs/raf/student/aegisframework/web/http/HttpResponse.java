@@ -3,6 +3,7 @@ package rs.raf.student.aegisframework.web.http;
 import lombok.SneakyThrows;
 import rs.raf.student.aegisframework.core.dependency_injection.DependencyInjectionManager;
 import rs.raf.student.aegisframework.web.endpoint.EndpointManager;
+import rs.raf.student.aegisframework.web.marshall.MarshallingManager;
 
 import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
@@ -35,9 +36,9 @@ public class HttpResponse {
         }
 
         Object instance = DependencyInjectionManager.getInstance(method.getDeclaringClass());
-        method.invoke(instance);
+        Object returnValue = method.invoke(instance);
 
-        output.println(responseLine(HttpProtocol.HTTP1, HttpStatusCode.OK));
+        output.println(responseLine(HttpProtocol.HTTP1, HttpStatusCode.OK) + "\r\n" + MarshallingManager.toJson(returnValue));
     }
 
     private String responseLine(HttpProtocol protocol, HttpStatusCode statusCode) {
